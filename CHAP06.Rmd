@@ -1,0 +1,196 @@
+---
+title: "Chapter 6"
+author: "Alan T. Arnholt"
+date: 'Last compiled: `r format(Sys.time(), "%B %d, %Y at %X")`'
+output: bookdown::html_document2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, warning = FALSE, message = FALSE, fig.align = "center")
+```
+
+# Scatterplots, Association, and Correlation
+
+Objectives:
+
+
+I.    Examine scatterplots for association
+
+II.   Calculate the correlation coefficient
+
+III.  Properties of $r$
+
+VI.   Introduce `tidyverse` (graphs, and data munging)
+
+A **scatterplot** is a graph of points on a horizontal $x$-axis and vertical $y$-axis.  It helps us picture associations between variables.
+
+Typically, we will have an **explanatory** or predictor variable called $x$ and a **response** variable called $y$.  These largely depend on how a problem is worded.  What you might want to predict is $y$.
+
+To describe a scatterplot, we discuss:
+
+1. direction (positive or negative)
+2. form (straight, curved, other)
+3. strength (amount of scatter - strong, moderate, weak) and
+4. outliers.
+
+A numerical measure that gives us direction and strength of a linear relationship is correlation, $r = \frac{\sum{z_xz_y}}{n-1}$.
+
+$$r = \frac{1}{n-1}\sum_{i=1}^{n}\left(\frac{x - \bar{x}}{s_x}\right)\left(\frac{y - \bar{y}}{s_y}\right)$$
+
+Before we calculate correlation, we must check 3 things:
+
+1. Quantitative variables?
+2. Straight (cloud shape), no curve
+3. No outliers
+
+**Properties of $r$**
+
+1. sign of $r$ gives direction of association
+2. $-1 \leq r \leq 1$
+3. $r_{x,y} = r_{y,x}$
+4. Correlation has no units
+5. Correlation is not affected by multiplying or shifting data
+6. Correlation measures LINEAR association only
+7. Outliers affect correlation greatly.
+
+
+# Scatterplots and the `tidyverse`
+
+Read in the data set `Heights_and_weights.csv` stored in the `DATA` directory using the `read.csv()` function and store the results in `hw`.
+
+```{r}
+hw <- read.csv("./DATA/Heights_and_weights.csv")
+head(hw) # shows first 6 rows of hw
+library(tidyverse) # loads many useful packages including ggplot2 and dplyr
+p <- ggplot(data = hw, aes(x = Height, y = Weight)) +
+  geom_point()
+#
+p
+p + theme_bw() 
+p + theme_bw() + labs(x = "Height (inches)", y = "Weight (lbs)")
+```
+
+```{r, label = "US", fig.cap = "Scatterplot of Weight (pounds) versus Height (inches)"}
+p3 <- ggplot(data = hw, aes(x = Height, y = Weight)) +
+  geom_point(color = "blue") + 
+  theme_bw() +
+  labs(x = "Height (inches)", y = "Weight (pounds)")
+p3
+```
+
+## Using `mutate()`
+
+Use `mutate()` to create a weight variable in kg, and a height variable in cm.  
+
+```{r}
+hw <- hw %>% 
+  mutate(Weight_kg = Weight*0.453592, Height_cm = Height*2.54)
+head(hw)
+```
+
+Create a scatterplot similar to Figure \@ref(fig:US) using `Weight_kg` and `Height_cm` on the $y$ and $x$ axes instead of `Weight` and `Height`.
+
+```{r, label = "EU", fig.cap = "Scatterplot of Weight (kg) versus Height (cm)"}
+# Your code goes here
+
+
+
+
+
+```
+
+Use `mutate()` to create `zx` and `zy` as well as the variable `CC` to indicate whether the product of `zx` times `zy` is positive or negative.
+
+```{r}
+hw <- hw %>% 
+  mutate(zx = (Height - mean(Height))/sd(Height), zy = (Weight - mean(Weight))/sd(Weight), 
+         CC = ifelse(abs(zx*zy) <.01, "neutral", ifelse(zx*zy > 0, "positive", "negative")))
+head(hw)
+ggplot(data = hw, aes(x = zx, y = zy, color = CC)) +
+  geom_point() +
+  geom_hline(yintercept = 0, lty = "dashed") + 
+  geom_vline(xintercept = 0, lty = "dashed") + 
+  theme_bw()+ 
+  labs(x = "Standardized Height", y = "Standardized Weight") + 
+  scale_color_manual(values= c("red", "blue", "darkgreen"))
+```
+
+## Computing the correlation
+
+Compute the correlation between `Weight` and `Height` using the information in `hw`.
+
+```{r}
+head(hw)
+# Using tidyverse
+hw %>% 
+  summarize(r_US = cor(Height, Weight), r_EU = cor(Height_cm, Weight_kg)) 
+# Using base R
+cor(hw$Weight, hw$Height)
+```
+
+## Straightening Scatterplots
+
+Read in the data in `F-stops.csv` and create a scatterplot to resemble Figure 6.11 on page 183 from the text book.
+
+```{r}
+# Your Code Goes Here
+
+
+
+
+
+
+```
+
+Recreate Figure 6.13 on page 185 of the text.
+
+```{r}
+# Your Code Goes Here
+
+
+
+
+```
+
+Compute the correlation for the variables used in Figure 6.11 and Figure 6.13 of the text book.
+
+```{r}
+# Your Code Goes Here
+
+
+
+```
+
+# Reading in data from homework/Pearson --- One way to do it
+
+1. Click open in Excel and the data will download in an `*.xlsx` format  in your downloads folder.  
+
+2. Upload the `*.xslx` file to a `HWK_DATA` directory by clicking `upload` and navigating to the file you want to upload.
+
+```{r}
+library(readxl)
+prob1 <- read_xlsx("./HWK_DATA/prob1.xlsx")
+knitr::kable(prob1)
+```
+
+```{r}
+ggplot(data = prob1, aes(x = Number_of_Sales_People_Working,
+                         y = Sales_in_Thousands)) + 
+  geom_point(color = "blue") + 
+  theme_bw()
+```
+
+## Problem 15 {-}
+
+```{r}
+library(readxl)
+prob15 <- read_xlsx("./HWK_DATA/prob15.xlsx")
+knitr::kable(prob15)
+```
+
+```{r}
+ggplot(data = prob15, aes(x = `Position Number`, y = `Distance from star (million miles)`)) + 
+  geom_point() + 
+  theme_bw()
+```
+
